@@ -1,0 +1,30 @@
+---
+title: "map1"
+author: "EerNisse"
+date: "May 4, 2020"
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+source('dataSetup.R')
+library(leaflet)
+
+```
+
+```{r map1, message=F,error=F,warning=F}
+
+mc<-mdata %>% filter(Parameter=='Cases')
+md<-mdata %>% filter(Parameter=='Deaths')
+
+#Make map
+  leaflet() %>% 
+  addTiles() %>% 
+  addCircleMarkers(lat=mc$Lat,lng=mc$Long,radius=sqrt(mc$Result)*.01,
+                   weight=.5,fillColor = 'blue',popup = paste0(mc$`Province/State`,"; ",mc$Result," cases")) %>%
+  addCircleMarkers(lat=mc$Lat,lng=mc$Long,radius=sqrt(md$Result)*.01,
+                   weight=.5,fillColor = 'red',popup = paste0(md$`Province/State`,"; ",md$Result," deaths"))
+
+
+```
+

@@ -17,13 +17,24 @@ casesL<-tsDataCases %>%
   gather(DATE,COUNT,5:ncol(.)) %>% 
   mutate(Parameter = 'Cases')
 
-deathsL<-tsDataCases %>% 
+deathsL<-tsDataDeaths %>% 
   gather(DATE,COUNT,5:ncol(.)) %>% 
   mutate(Parameter = 'Deaths')
 
 tsData<-bind_rows(casesL,deathsL) %>% 
-  mutate(DATE2=as.Date(DATE,format='%m/%d/%y'))
+  mutate(DATE2=as.Date(DATE,format='%m/%d/%y')) %>% 
+  arrange(`Country/Region`,DATE2,Parameter)
 
-str(tsData)
+mdata<-tsData %>%
+  mutate(
+    `Province/State` = case_when(
+      `Province/State` == '' ~ `Country/Region`,
+      TRUE ~ `Province/State`
+    )
+  ) %>% 
+  group_by(`Province/State`,Parameter,Lat,Long) %>% 
+  summarize(Result=max(COUNT))
+
+#str(tsData)
 
 
