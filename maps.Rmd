@@ -2,16 +2,19 @@
 title: "map1"
 author: "EerNisse"
 date: "May 4, 2020"
-output: slidy_presentation
+output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 source('dataSetup.R')
 library(leaflet)
+library(plotly)
+options(scipen = 6)
 
 ```
 
+## World Cases and Deaths
 ```{r map1, message=F,error=F,warning=F}
 
 mc<-mdata %>% filter(Parameter=='Cases')
@@ -20,11 +23,78 @@ md<-mdata %>% filter(Parameter=='Deaths')
 #Make map
   leaflet() %>% 
   addTiles() %>% 
-  addCircleMarkers(lat=mc$Lat,lng=mc$Long,radius=sqrt(mc$Result)*.01,
-                   weight=.5,fillColor = 'blue',popup = paste0(mc$`Province/State`,"; ",mc$Result," cases")) %>%
-  addCircleMarkers(lat=mc$Lat,lng=mc$Long,radius=sqrt(md$Result)*.01,
-                   weight=.5,fillColor = 'red',popup = paste0(md$`Province/State`,"; ",md$Result," deaths"))
+  addCircles(lat=mc$Lat,lng=mc$Long,radius=mc$Result*.5,
+                   weight=.5,fillColor = 'blue',popup = paste0(mc$`Province/State`,"; ",mc$Result," cases"),group = 'Cases') %>%
+  addCircles(lat=mc$Lat,lng=mc$Long,radius=md$Result,
+                   weight=.5,fillColor = 'red',popup = paste0(md$`Province/State`,"; ",md$Result," deaths"),group = 'Deaths') %>% 
+    addLayersControl(
+    #baseGroups = c("OSM (default)", "Toner", "Toner Lite"),
+    overlayGroups = c("Cases","Deaths"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
 
 
 ```
+
+*Data Source: *https://github.com/CSSEGISandData/COVID-19
+
+## US Cases
+```{r map2,message=F,error=F,warning=F}
+
+cdata<-usDataL %>% filter(Parameter == 'Confirmed') %>% 
+  group_by(Province_State,Lat,Long_) %>% 
+  summarize(Result = max(Result))
+
+
+ddata<-usDataL %>% filter(Parameter == 'Deaths') %>% 
+  group_by(Province_State,Lat,Long_) %>% 
+  summarize(Result = max(Result))
+
+leaflet() %>% 
+  addTiles() %>% 
+  addCircles(lat = cdata$Lat,lng = cdata$Long_,radius = cdata$Result,
+             weight=.5,fillColor = 'blue',fillOpacity = 0.5,
+             popup = paste0(cdata$Province_State,"; ",cdata$Result*2," cases"),group = 'Cases') %>% 
+  addCircles(lat = ddata$Lat,lng = ddata$Long_,radius = ddata$Result,
+             weight=.5,fillColor = 'red',fillOpacity = 0.5,
+             popup = paste0(ddata$Province_State,"; ",ddata$Result," deaths"),group = 'Deaths') %>% 
+  addLayersControl(
+    overlayGroups = c("Cases","Deaths"),
+    options = layersControlOptions(collapsed = FALSE)
+  )
+
+
+```
+
+*Data Source: *https://github.com/CSSEGISandData/COVID-19
+
+## Time Series US
+
+```{r ts,message=F,error=F,warning=F}
+
+gdata<-usDataL %>% 
+  filter(Parameter=='Confirmed',
+         Result>0 & Result != '')
+
+n<-length(unique(gdata$Province_State))
+
+g<-ggplot(gdata,aes(Date,Result,color=Province_State))+
+  theme(plot.margin = margin(0.5,0.1,0.1,0.1,unit = 'in'))+
+  geom_line()+
+  theme(legend.position='None')+
+  scale_color_manual(values = rep('grey',n))+
+  labs(y='# of Cases',title = 'Cases through Time by State/Province')
+
+ggplotly(g) %>% 
+  layout(hoverlabel=list(bgcolor="red")) %>% 
+  highlight(on = "plotly_hover")
+
+
+```
+
+
+
+
+
+
 

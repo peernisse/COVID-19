@@ -6,11 +6,11 @@
 library(tidyverse)
 library(data.table)
 
-#Get time series data
+#Get time series data----------------
 tsDataCases<-fread('./csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
 tsDataDeaths<-fread('./csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
 
-setdiff(names(tsDataCases),names(tsDataDeaths))
+#setdiff(names(tsDataCases),names(tsDataDeaths))
 
 #Reorganize data
 casesL<-tsDataCases %>% 
@@ -36,5 +36,41 @@ mdata<-tsData %>%
   summarize(Result=max(COUNT))
 
 #str(tsData)
+
+#Get US daily report data---------------
+files<-list.files('./csse_covid_19_data/csse_covid_19_daily_reports_us/',
+                  pattern='.csv',full.names = TRUE)
+files
+
+usData<-data.frame()
+
+for(i in 1:length(files)){
+  
+  #Testing
+  #i<-1
+  ####
+  
+    inData<-fread(files[i])
+    
+    usData<-usData %>% bind_rows(inData)
+  
+}
+
+#Shape into long format
+usDataL<-usData %>% 
+  gather(Parameter,Result,6:ncol(usData)) %>% 
+  mutate(
+    Date = as.Date(Last_Update,format="%Y-%m-%d %H:%M:%S"),
+    Result = as.numeric(Result)
+  ) %>% 
+  filter(!is.na(Lat))
+
+  
+  
+  
+  
+  
+  
+
 
 
