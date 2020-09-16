@@ -6,39 +6,52 @@
 library(tidyverse)
 library(data.table)
 
+#Download data---------------------------
+download.file('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv',
+              destfile = './data/cases.csv')
+
+download.file('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv',
+              destfile = './data/deaths.csv')
+
 #Get time series data----------------
-tsDataCases<-fread('./csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
-tsDataDeaths<-fread('./csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+#tsDataCases<-fread('C:/R_Projects/COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
+#tsDataDeaths<-fread('C:/R_Projects/COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+
+
+tsDataCases<-fread('./data/cases.csv')
+tsDataDeaths<-fread('./data/deaths.csv')
 
 #setdiff(names(tsDataCases),names(tsDataDeaths))
 
 #Reorganize data
 casesL<-tsDataCases %>% 
-  gather(DATE,COUNT,5:ncol(.)) %>% 
+  gather(DATE,COUNT,12:ncol(.)) %>% 
   mutate(Parameter = 'Cases')
 
 deathsL<-tsDataDeaths %>% 
-  gather(DATE,COUNT,5:ncol(.)) %>% 
+  gather(DATE,COUNT,13:ncol(.)) %>% 
   mutate(Parameter = 'Deaths')
 
 tsData<-bind_rows(casesL,deathsL) %>% 
   mutate(DATE2=as.Date(DATE,format='%m/%d/%y')) %>% 
-  arrange(`Country/Region`,DATE2,Parameter)
+  arrange(`Country_Region`,DATE2,Parameter)
 
 mdata<-tsData %>%
   mutate(
-    `Province/State` = case_when(
-      `Province/State` == '' ~ `Country/Region`,
-      TRUE ~ `Province/State`
+    `Province_State` = case_when(
+      `Province_State` == '' ~ `Country_Region`,
+      TRUE ~ `Province_State`
     )
   ) %>% 
-  group_by(`Province/State`,Parameter,Lat,Long) %>% 
+  group_by(`Province_State`,Parameter,Lat,Long_) %>% 
   summarize(Result=max(COUNT))
 
 #str(tsData)
 
 #Get US daily report data---------------
-files<-list.files('./csse_covid_19_data/csse_covid_19_daily_reports_us/',
+
+#Read in data
+files<-list.files('C:/R_Projects/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports_us/',
                   pattern='.csv',full.names = TRUE)
 files
 

@@ -23,9 +23,9 @@ md<-mdata %>% filter(Parameter=='Deaths')
 #Make map
   leaflet() %>% 
   addTiles() %>% 
-  addCircles(lat=mc$Lat,lng=mc$Long,radius=mc$Result*.5,
+  addCircles(lat=mc$Lat,lng=mc$Long_,radius=mc$Result*.5,
                    weight=.5,fillColor = 'blue',popup = paste0(mc$`Province/State`,"; ",mc$Result," cases"),group = 'Cases') %>%
-  addCircles(lat=mc$Lat,lng=mc$Long,radius=md$Result,
+  addCircles(lat=mc$Lat,lng=mc$Long_,radius=md$Result,
                    weight=.5,fillColor = 'red',popup = paste0(md$`Province/State`,"; ",md$Result," deaths"),group = 'Deaths') %>% 
     addLayersControl(
     #baseGroups = c("OSM (default)", "Toner", "Toner Lite"),
